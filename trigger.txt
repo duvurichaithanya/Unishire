@@ -1,2 +1,5 @@
-trigger Accna on Account<before update>{
-for(Account:Trigger.new){
+trigger Accna on Account<after insert>{
+for(Account a:Trigger.new){
+  if(a.Name=="chaithu"){
+   a.addError("User Name Cannot Be Mentioned In Account);
+}
