@@ -1,0 +1,2 @@
+trigger Accna on Account<before update>{
+for(Account:Trigger.new){
