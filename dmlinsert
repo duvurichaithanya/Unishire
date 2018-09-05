@@ -1,0 +1,8 @@
+public class Createrecord{
+ public Account Acc{get;set;}
+ public createrecord(){
+ Account Acc=new Account();
+ Acc.add(Name="Chai",Industry="Agriculture");
+ insert Acc;
+ }
+ }
