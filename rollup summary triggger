@@ -1,0 +1,49 @@
+public without sharing class OpportunityRollups {
+	public static void rollupLineItems(List<OpportunityLineItem> lineItems) {
+		if (lineItems != null && lineItems.isEmpty() == false) {
+			//Get Opportunity Ids
+			Set<Id> opportunityIds = new Set<Id>();
+			
+			for (OpportunityLineItem lineItem : lineItems) {
+				opportunityIds.add(lineItem.OpportunityId);
+			}
+
+			//Get Map of Opportunities
+			Map<Id, Opportunity> opportunities = new Map<Id, Opportunity>([SELECT Id, Rollup_Amount__c FROM Opportunity WHERE Id IN :opportunityIds]);
+
+			//Aggregate Rollup_Amount__c
+			Map<Id, double> oppAmounts = new Map<Id, double>();
+
+			AggregateResult[] results = [SELECT OpportunityId, SUM(TotalPrice) RollupAmount FROM OpportunityLineItem WHERE OpportunityId IN :opportunityIds GROUP BY OpportunityId];
+			for (AggregateResult result : results) {
+				Id opportunityId = (Id) result.get('OpportunityId');
+				double rollupAmount = (double) result.get('RollupAmount');
+
+				oppAmounts.put(opportunityId, rollupAmount);
+			}
+
+			//Map Amounts for Update
+			List<Opportunity> oppsToUpdate = new List<Opportunity>();
+
+			for(Id opportunityId : opportunities.keySet()) {
+				Opportunity opp = opportunities.get(opportunityId);
+				
+				double rollupAmount = 0;
+
+				if (oppAmounts.containsKey(opportunityId)) {
+					rollupAmount = oppAmounts.get(opportunityId);
+				}
+
+				if (rollupAmount != opp.Rollup_Amount__c) {
+					opp.Rollup_Amount__c = rollupAmount;
+					oppsToUpdate.add(opp);
+				}
+			}
+
+			//Update Opportunities
+			if (oppsToUpdate.isEmpty() == false) {
+				update oppsToUpdate;
+			}
+		}
+	}
+}
