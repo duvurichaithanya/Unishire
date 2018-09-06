@@ -1,3 +1,19 @@
+trigger OpportunityLineItemTrigger on OpportunityLineItem (before insert
+	,before update
+	,before delete
+	,after insert
+	,after update
+	,after delete) {
+
+	if (trigger.isAfter && trigger.isDelete == false) {
+		OpportunityRollups.rollupLineItems(trigger.new);
+	}
+	else if (trigger.isAfter && trigger.isDelete == true) {
+		OpportunityRollups.rollupLineItems(trigger.old);
+	}
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------
 public without sharing class OpportunityRollups {
 	public static void rollupLineItems(List<OpportunityLineItem> lineItems) {
 		if (lineItems != null && lineItems.isEmpty() == false) {
